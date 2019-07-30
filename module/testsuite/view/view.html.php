@@ -154,7 +154,7 @@
         </div>
       </div>
     </div>
-    <?php if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFields($app->moduleName, $app->methodName, $suite, 'div', "position=right&divCell=true");?>
+    <?php if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFields($app->moduleName, $app->methodName, $suite, 'div', "position=right&mode=value");?>
     <div class='cell'>
       <?php include '../../common/view/action.html.php';?>
     </div>

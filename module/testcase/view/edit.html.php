@@ -113,7 +113,7 @@
               </table>
             </div>
           </div>
-          <?php if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFields($app->moduleName, $app->methodName, $case, 'div', 'position=left&divCell=false');?>
+          <?php if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFields($app->moduleName, $app->methodName, $case, 'div', 'position=left&mode=control');?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->testcase->legendComment;?></div>
             <div class='detail-content'><?php echo html::textarea('comment', '',  "rows='5' class='form-control'");?></div>
@@ -247,7 +247,7 @@
               <?php endif;?>
             </table>
           </div>
-          <?php if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFields($app->moduleName, $app->methodName, 'div', 'position=right&divCell=false');?>
+          <?php if(isset($this->config->bizVersion)) $this->loadModel('flow')->printFields($app->moduleName, $app->methodName, 'div', 'position=right&mode=control');?>
           <div class='detail'>
             <div class='detail-title'><?php echo $lang->testcase->legendOpenAndEdit;?></div>
             <table class='table table-form'>
