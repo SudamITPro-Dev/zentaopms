@@ -181,44 +181,7 @@ class router extends baseRouter
      */
     public function loadModuleConfig($moduleName, $appName = '')
     {
-        global $config;
-
-        $appName = '';
-
-        if($config and (!isset($config->$moduleName) or !is_object($config->$moduleName))) $config->$moduleName = new stdclass();
-
-        /* 初始化数组。Init the variables. */
-        $extConfigFiles       = array();
-        $commonExtConfigFiles = array();
-        $siteExtConfigFiles   = array();
-
-        /* 先获得模块的主配置文件。Get the main config file for current module first. */
-        $mainConfigFile = $this->getModulePath($appName, $moduleName) . 'config.php';
-
-        /* 查找扩展配置文件。Get extension config files. */
-        if($config->framework->extensionLevel > 0) $extConfigPath = $this->getModuleExtPath($appName, $moduleName, 'config');
-        if($config->framework->extensionLevel >= 1 and !empty($extConfigPath['common'])) $commonExtConfigFiles = helper::ls($extConfigPath['common'], '.php');
-        if($config->framework->extensionLevel == 2 and !empty($extConfigPath['site']))   $siteExtConfigFiles   = helper::ls($extConfigPath['site'], '.php');
-        $extConfigFiles = array_merge($commonExtConfigFiles, $siteExtConfigFiles);
-
-        /* 将主配置文件和扩展配置文件合并在一起。Put the main config file and extension config files together. */
-        $configFiles = array_merge(array($mainConfigFile), $extConfigFiles);
-
-        /* 加载每一个配置文件。Load every config file. */
-        static $loadedConfigs = array();
-        foreach($configFiles as $configFile)
-        {
-            if(in_array($configFile, $loadedConfigs)) continue;
-            if(file_exists($configFile)) include $configFile;
-            $loadedConfigs[] = $configFile;
-        }
-
-        /* 加载数据库中与本模块相关的配置项。Merge from the db configs. */
-        if($moduleName != 'common')
-        {
-            if(isset($config->system->$moduleName))   $this->mergeConfig($config->system->$moduleName, $moduleName);
-            if(isset($config->personal->$moduleName)) $this->mergeConfig($config->personal->$moduleName, $moduleName);
-        }
+        return parent::loadModuleConfig($moduleName, $appName = '');
     }
 
     /**
