@@ -178,7 +178,7 @@ class repoModel extends model
             if($data->prefix) $data->prefix = '/' . $data->prefix;
         }
 
-        if($data->encrypt == 'base64') $data->password = base64_encode($data->password);
+        $data->password = base64_encode($data->password);
         $this->dao->insert(TABLE_REPO)->data($data)
             ->batchCheck($this->config->repo->create->requiredFields, 'notempty')
             ->checkIF($data->SCM == 'Subversion', $this->config->repo->svn->requiredFields, 'notempty')
@@ -284,7 +284,7 @@ class repoModel extends model
         $repo = $this->dao->select('*')->from(TABLE_REPO)->where('id')->eq($repoID)->fetch();
         if(!$repo) return false;
 
-        if($repo->encrypt == 'base64') $repo->password = base64_decode($repo->password);
+        $repo->password = base64_decode($repo->password);
         $repo->acl = json_decode($repo->acl);
         return $repo;
     }
@@ -866,7 +866,7 @@ class repoModel extends model
         $stories = array();
         $tasks   = array();
         $bugs    = array();
-        $commonReg = "(?:\s){0,}((?:#|:|£º){0,})([0-9, ]{1,})";
+        $commonReg = "(?:\s){0,}((?:#|:|ï¿½ï¿½){0,})([0-9, ]{1,})";
         $taskReg  = '/task' .  $commonReg . '/i';
         $storyReg = '/story' . $commonReg . '/i';
         $bugReg   = '/bug'   . $commonReg . '/i';
@@ -922,6 +922,21 @@ class repoModel extends model
     public function listForSelection($whr)
     {
         $repos = $this->dao->select('id, name')->from(TABLE_REPO)
+            ->where('deleted')->eq('0')
+            ->beginIF(!empty(whr))->andWhere('(' . $whr . ')')->fi()
+            ->orderBy(id)
+            ->fetchPairs();
+        $repos[''] = '';
+        return $repos;
+    }
+    /**
+     * list repos for jenkins job editï¼Œ key will be 12-git
+     *
+     * @return mixed
+     */
+    public function listForSelectionWithType($whr)
+    {
+        $repos = $this->dao->select("concat(id, '-', SCM), name")->from(TABLE_REPO)
             ->where('deleted')->eq('0')
             ->beginIF(!empty(whr))->andWhere('(' . $whr . ')')->fi()
             ->orderBy(id)

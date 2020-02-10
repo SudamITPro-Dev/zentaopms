@@ -21,11 +21,6 @@
             <form id='jenkinsForm' method='post' class='form-ajax'>
                 <table class='table table-form'>
                     <tr>
-                        <th class='thWidth'></th>
-                        <td colspan="2"><?php echo $lang->jenkins->tips; ?></td>
-                    </tr>
-
-                    <tr>
                         <th><?php echo $lang->jenkins->name; ?></th>
                         <td class='required'><?php echo html::input('name', $jenkins->name, "class='form-control'"); ?></td>
                         <td></td>

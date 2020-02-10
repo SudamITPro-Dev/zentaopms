@@ -30,6 +30,7 @@ CREATE TABLE `zt_cijob` (
   `id` mediumint(8) unsigned NOT NULL AUTO_INCREMENT,
   `name` varchar(50) NOT NULL,
   `repo` mediumint(8) unsigned NOT NULL,
+  `svnFolder` varchar(500) DEFAULT '',
   `jenkins` mediumint(8) unsigned NOT NULL,
   `jenkinsJob` varchar(500) NOT NULL,
   `triggerType` varchar(255) NOT NULL,
