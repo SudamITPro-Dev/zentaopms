@@ -180,14 +180,26 @@ class ciModel extends model
         $buildUrl = sprintf('%s/job/%s/build/api/json', $jenkinsServer, $job->jenkinsJob);
 
         $data = new stdClass();
-        $response = common::http($buildUrl, $data, true);
-        if ( preg_match ( "!Location: .*item/(.*)/!", $response , $matches ) ) {
-            $job->queueItem = $matches[1];
-        }
-
+        $job->queueItem = $this->sendBuildRequest($buildUrl, $data);
         $this->saveBuild($job);
 
         return !dao::isError();
+    }
+
+    /**
+     * @param $url string
+     * @param $data object
+     * @return false|mixed|string
+     */
+    public function sendBuildRequest($url, $data)
+    {
+        $response = common::http($url, $data, true);
+
+        if ( preg_match ( "!Location: .*item/(.*)/!", $response , $matches ) ) {
+            return $matches[1];
+        }
+
+        return '';
     }
 
     /**
