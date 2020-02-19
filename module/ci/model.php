@@ -177,19 +177,14 @@ class ciModel extends model
 
         $r = '://' . $jenkinsUser . ':' . $jenkinsTokenOrPassword . '@';
         $jenkinsServer = str_replace('://', $r, $jenkinsServer);
-        $buildUrl = sprintf('%s/job/%s/build/api/json', $jenkinsServer, $job->jenkinsJob);
+        $buildUrl = sprintf('%s/job/%s/buildWithParameters/api/json', $jenkinsServer, $job->jenkinsJob);
 
         $data = new stdClass();
-        //  TODO: 将一下参数植入$data，完成后删除注释
-        //  GIT 参数:
-        //  PARAM_TAG：tag名
-        //  PARAM_REVISION：revison编号
-        //
-        //  SVN 参数
-        //  PARAM_TAG：tag url
-        //  PARAM_REVISION：revison数字
-        //  USERNAME：用户名
-        //  PASSWORD：参数名
+        //  TODO: 将参数加入$data，代码完成后删除注释
+        //  PARAM_TAG：git tag name or svn tag url
+        //  PARAM_REVISION：git revision string or svn revision number
+        $data->PARAM_TAG = "tag111";
+        $data->PARAM_REVISION = "6c3a7bf931855842e261c7991bb143c1e0c3fb19";
 
         $job->queueItem = $this->sendBuildRequest($buildUrl, $data);
         $this->saveBuild($job);
@@ -204,9 +199,14 @@ class ciModel extends model
      */
     public function sendBuildRequest($url, $data)
     {
-        $response = common::http($url, $data, true);
+        if (!empty($data->PARAM_TAG))
+        {
+            $data->PARAM_REVISION = '';
+        }
 
-        if ( preg_match ( "!Location: .*item/(.*)/!", $response , $matches ) ) {
+        $response = common::http($url, $data, true);
+        if ( preg_match ( "!Location: .*item/(.*)/!", $response , $matches ) )
+        {
             return $matches[1];
         }
 
