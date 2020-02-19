@@ -180,6 +180,17 @@ class ciModel extends model
         $buildUrl = sprintf('%s/job/%s/build/api/json', $jenkinsServer, $job->jenkinsJob);
 
         $data = new stdClass();
+        //  TODO: 将一下参数植入$data，完成后删除注释
+        //  GIT 参数:
+        //  PARAM_TAG：tag名
+        //  PARAM_REVISION：revison编号
+        //
+        //  SVN 参数
+        //  PARAM_TAG：tag url
+        //  PARAM_REVISION：revison数字
+        //  USERNAME：用户名
+        //  PASSWORD：参数名
+
         $job->queueItem = $this->sendBuildRequest($buildUrl, $data);
         $this->saveBuild($job);
 
