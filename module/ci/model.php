@@ -161,26 +161,31 @@ class ciModel extends model
      */
     public function exeJob($jobID)
     {
-        $po = $this->dao->select('job.id jobId, job.name jobName, job.repo, job.jenkinsJob, jenkins.name jenkinsName,jenkins.serviceUrl,jenkins.account,jenkins.token,jenkins.password')
+        $job = $this->dao->select('job.id jobId, job.name jobName, job.repo, job.jenkinsJob, jenkins.name jenkinsName,jenkins.serviceUrl,jenkins.account,jenkins.token,jenkins.password')
             ->from(TABLE_CI_JOB)->alias('job')
             ->leftJoin(TABLE_JENKINS)->alias('jenkins')->on('job.jenkins=jenkins.id')
             ->where('job.id')->eq($jobID)
             ->fetch();
 
-        if (!$po) {
+        if (!$job) {
             return false;
         }
 
-        $jenkinsServer = $po->serviceUrl;
-        $jenkinsUser = $po->account;
-        $jenkinsTokenOrPassword = $po->token ? $po->token : base64_decode($po->password);
+        $jenkinsServer = $job->serviceUrl;
+        $jenkinsUser = $job->account;
+        $jenkinsTokenOrPassword = $job->token ? $job->token : base64_decode($job->password);
 
         $r = '://' . $jenkinsUser . ':' . $jenkinsTokenOrPassword . '@';
         $jenkinsServer = str_replace('://', $r, $jenkinsServer);
-        $buildUrl = sprintf('%s/job/%s/build/api/json', $jenkinsServer, $po->jenkinsJob);
+        $buildUrl = sprintf('%s/job/%s/build/api/json', $jenkinsServer, $job->jenkinsJob);
 
-        $po->queueItem = $this->sendBuildRequest($buildUrl);
-        $this->saveBuild($po);
+        $data = new stdClass();
+        $response = common::http($buildUrl, $data, true);
+        if ( preg_match ( "!Location: .*item/(.*)/!", $response , $matches ) ) {
+            $job->queueItem = $matches[1];
+        }
+
+        $this->saveBuild($job);
 
         return !dao::isError();
     }
@@ -333,44 +338,4 @@ class ciModel extends model
             ->where('id')->eq($build->cijob)->exec();
     }
 
-    /**
-     * @param $url
-     * @return false|mixed|string
-     */
-    public function sendBuildRequest($url) // not to use common http
-    {
-        if(!extension_loaded('curl')) return json_encode(array('result' => 'fail', 'message' => $this->lang->error->noCurlExt));
-
-        $curl = curl_init();
-        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0);
-        curl_setopt($curl, CURLOPT_USERAGENT, 'Sae T OAuth2 v0.1');
-        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_TIMEOUT, 30);
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, TRUE);
-        curl_setopt($curl, CURLOPT_ENCODING, "");
-        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, FALSE);
-        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, FALSE);
-        curl_setopt($curl, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4);
-        curl_setopt($curl, CURLOPT_HEADER, FALSE);
-
-        $headers[] = "API-RemoteIP: " . $_SERVER['REMOTE_ADDR'];
-        curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLINFO_HEADER_OUT, TRUE);
-
-        curl_setopt ($curl , CURLOPT_HEADER, 1 );
-
-        curl_setopt($curl, CURLOPT_POST, true);
-        curl_setopt($curl, CURLOPT_POSTFIELDS, new stdClass());
-
-        $response = curl_exec($curl);
-        $errors   = curl_error($curl);
-        curl_close($curl);
-
-        if ( preg_match ( "!Location: .*item/(.*)/!", $response , $matches ) ) {
-            return $matches[1];
-        }
-
-        return '';
-    }
 }
