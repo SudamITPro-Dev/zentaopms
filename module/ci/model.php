@@ -303,13 +303,17 @@ class ciModel extends model
 
             $response = common::http($queueUrl);
             if (strripos($response,"404") > -1) { // queue expired, use another api
-                $infoUrl = sprintf('%s/job/%s/%s/api/json', $jenkinsServer, $po->jenkinsJob, $po->queueItem);
+                $job = $this->getJobByID($po->cijob);
+
+                $infoUrl = sprintf("%s/job/%s/api/xml?tree=builds[id,number,result,queueId]&xpath=//build[queueId=%s]", $jenkinsServer, $job->jenkinsJob, $po->queueItem);
+
                 $response = common::http($infoUrl);
-                $buildInfo = json_decode($response);
+                $buildInfo = simplexml_load_string($response);
+                $buildNumber = strtolower($buildInfo->number);
                 $result = strtolower($buildInfo->result);
                 $this->updateBuildStatus($po, $result);
 
-                $logUrl = sprintf('%s/job/%s/%s/consoleText', $jenkinsServer, $po->jenkinsJob, $po->queueItem);
+                $logUrl = sprintf('%s/job/%s/%s/consoleText', $jenkinsServer, $po->jenkinsJob, $buildNumber);
                 $response = common::http($logUrl);
                 $logs = json_decode($response);
 
